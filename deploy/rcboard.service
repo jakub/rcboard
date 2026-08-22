@@ -1,0 +1,15 @@
+# user unit: ~/.config/systemd/user/rcboard.service
+# then: systemctl --user enable --now rcboard
+#       tailscale serve --bg 7777
+[Unit]
+Description=rcboard - claude remote-control project board
+After=network-online.target
+
+[Service]
+ExecStart=%h/.local/bin/rcboard
+Restart=on-failure
+# claude and tmux live on PATH under the login shell, not under systemd's default.
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin
+
+[Install]
+WantedBy=default.target

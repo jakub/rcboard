@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rcboard</title>
+<style>
+  :root { color-scheme: light dark; --up: #3fb950; --muted: #8b949e; --warn: #d29922; }
+  body { font: 16px/1.4 system-ui, sans-serif; margin: 0; padding: 1rem; max-width: 40rem; }
+  h1 { font-size: 1.1rem; margin: 0 0 .25rem; }
+  .root { color: var(--muted); font-size: .85rem; margin-bottom: 1rem; }
+  .err { background: #da363322; border: 1px solid #da3633; padding: .5rem .75rem; border-radius: 6px; margin-bottom: 1rem; }
+  .p { border: 1px solid #8b949e44; border-radius: 8px; padding: .75rem; margin-bottom: .75rem; }
+  .p.up { border-color: var(--up); }
+  .head { display: flex; align-items: center; gap: .5rem; }
+  .dot { width: .6rem; height: .6rem; border-radius: 50%; background: var(--muted); flex: none; }
+  .up .dot { background: var(--up); }
+  .name { font-weight: 600; flex: 1; }
+  .meta { color: var(--muted); font-size: .85rem; }
+  form { display: flex; gap: .5rem; align-items: center; margin-top: .5rem; flex-wrap: wrap; }
+  button, select { font: inherit; padding: .45rem .9rem; border-radius: 6px; border: 1px solid #8b949e88; background: transparent; color: inherit; }
+  button.go { background: var(--up); color: #000; border-color: var(--up); }
+  button.kill { border-color: #da3633; color: #da3633; }
+  pre { font-size: .7rem; background: #8b949e22; padding: .5rem; border-radius: 6px; overflow-x: auto; margin: .5rem 0 0; }
+  details summary { cursor: pointer; color: var(--muted); font-size: .85rem; margin-top: .5rem; }
+</style>
+</head>
+<body>
+<h1>rcboard</h1>
+<div class="root">{{.Root}}</div>
+{{with .Error}}<div class="err">{{.}}</div>{{end}}
+{{range .Projects}}
+<div class="p{{if .Running}} up{{end}}">
+  <div class="head">
+    <span class="dot"></span>
+    <span class="name">{{.Name}}</span>
+    <span class="meta">
+      {{if .Running}}up since {{.Since}}{{with .Workers}} · {{.}} sessions{{end}}{{else}}down{{end}}
+    </span>
+  </div>
+  {{if .Running}}
+    <form method="post" action="/stop">
+      <input type="hidden" name="name" value="{{.Name}}">
+      <button class="kill">stop</button>
+    </form>
+    <details><summary>pane</summary><pre>{{.Tail}}</pre></details>
+  {{else}}
+    {{with .LastLog}}<details><summary>last exit</summary><pre>{{.}}</pre></details>{{end}}
+    <form method="post" action="/start">
+      <input type="hidden" name="name" value="{{.Name}}">
+      <select name="spawn">
+        <option value="same-dir">same-dir</option>
+        {{if .Git}}<option value="worktree">worktree</option>{{end}}
+      </select>
+      <button class="go">start</button>
+    </form>
+  {{end}}
+</div>
+{{end}}
+</body>
+</html>
